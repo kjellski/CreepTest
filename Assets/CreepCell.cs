@@ -104,6 +104,11 @@ public class CreepCell : MonoBehaviour
         SetMesh();
     }
 
+    private float CalculateHighestSideEvelevation()
+    {
+        return _fillingLevel;
+    }
+
     private void GenerateUpSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating UP with offsets: " + verticesOffset + " + " + trianglesOffset);
@@ -204,16 +209,97 @@ public class CreepCell : MonoBehaviour
     private void GenerateLeftSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating LEFT with offsets: " + verticesOffset + " + " + trianglesOffset);
+        _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 0);
+        _vertices[verticesOffset + 1] = new Vector3(0, _fillingLevel, -1);
+        _vertices[verticesOffset + 2] = new Vector3(0, _fillingLevel / 2, -0.5f);
+        _vertices[verticesOffset + 3] = new Vector3(0, 0, 0);
+        _vertices[verticesOffset + 4] = new Vector3(0, 0, -1);
+
+        _triangles[trianglesOffset + 0] = verticesOffset + 2;
+        _triangles[trianglesOffset + 1] = verticesOffset + 0;
+        _triangles[trianglesOffset + 2] = verticesOffset + 1;
+
+        _triangles[trianglesOffset + 3] = verticesOffset + 4;
+        _triangles[trianglesOffset + 4] = verticesOffset + 2;
+        _triangles[trianglesOffset + 5] = verticesOffset + 1;
+
+        _triangles[trianglesOffset + 6] = verticesOffset + 3;
+        _triangles[trianglesOffset + 7] = verticesOffset + 0;
+        _triangles[trianglesOffset + 8] = verticesOffset + 2;
+
+        _triangles[trianglesOffset + 9] = verticesOffset + 3;
+        _triangles[trianglesOffset + 10] = verticesOffset + 2;
+        _triangles[trianglesOffset + 11] = verticesOffset + 4;
+
+        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
+            _uv[i] = Vector2.zero;
+
+        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
+            _normals[i] = Vector3.left;
     }
 
     private void GenerateRightSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating RIGHT with offsets: " + verticesOffset + " + " + trianglesOffset);
+        _vertices[verticesOffset + 0] = new Vector3(1, _fillingLevel, 0);
+        _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, -1);
+        _vertices[verticesOffset + 2] = new Vector3(1, _fillingLevel / 2, -0.5f);
+        _vertices[verticesOffset + 3] = new Vector3(1, 0, 0);
+        _vertices[verticesOffset + 4] = new Vector3(1, 0, -1);
+
+        _triangles[trianglesOffset + 0] = verticesOffset + 1;
+        _triangles[trianglesOffset + 1] = verticesOffset + 0;
+        _triangles[trianglesOffset + 2] = verticesOffset + 2;
+
+        _triangles[trianglesOffset + 3] = verticesOffset + 1;
+        _triangles[trianglesOffset + 4] = verticesOffset + 2;
+        _triangles[trianglesOffset + 5] = verticesOffset + 4;
+
+        _triangles[trianglesOffset + 6] = verticesOffset + 2;
+        _triangles[trianglesOffset + 7] = verticesOffset + 0;
+        _triangles[trianglesOffset + 8] = verticesOffset + 3;
+
+        _triangles[trianglesOffset + 9] = verticesOffset + 4;
+        _triangles[trianglesOffset + 10] = verticesOffset + 2;
+        _triangles[trianglesOffset + 11] = verticesOffset + 3;
+
+        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
+            _uv[i] = Vector2.zero;
+
+        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
+            _normals[i] = Vector3.right;
     }
 
     private void GenerateBackSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating BACK with offsets: " + verticesOffset + " + " + trianglesOffset);
+        _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, -1);
+        _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, -1);
+        _vertices[verticesOffset + 2] = new Vector3(0.5f, _fillingLevel / 2, -1);
+        _vertices[verticesOffset + 3] = new Vector3(0, 0, -1);
+        _vertices[verticesOffset + 4] = new Vector3(1, 0, -1);
+
+        _triangles[trianglesOffset + 0] = verticesOffset + 0;
+        _triangles[trianglesOffset + 1] = verticesOffset + 1;
+        _triangles[trianglesOffset + 2] = verticesOffset + 2;
+
+        _triangles[trianglesOffset + 3] = verticesOffset + 0;
+        _triangles[trianglesOffset + 4] = verticesOffset + 2;
+        _triangles[trianglesOffset + 5] = verticesOffset + 3;
+
+        _triangles[trianglesOffset + 6] = verticesOffset + 3;
+        _triangles[trianglesOffset + 7] = verticesOffset + 1;
+        _triangles[trianglesOffset + 8] = verticesOffset + 4;
+
+        _triangles[trianglesOffset + 9] = verticesOffset + 3;
+        _triangles[trianglesOffset + 10] = verticesOffset + 2;
+        _triangles[trianglesOffset + 11] = verticesOffset + 4;
+
+        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
+            _uv[i] = Vector2.zero;
+
+        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
+            _normals[i] = Vector3.back;
     }
 
     private void SetMesh()

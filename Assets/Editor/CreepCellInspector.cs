@@ -4,7 +4,7 @@ using UnityEngine;
 [CustomEditor(typeof(CreepCell))]
 public class CreepCellInspector : Editor
 {
-    private float _editableFillingLevel = 1.0f;
+    private float _editableFillingLevel = 1.0f;//((CreepCell)target).FillingLevel;
     public float CellFilling
     {
         get
@@ -28,13 +28,14 @@ public class CreepCellInspector : Editor
         base.OnInspectorGUI();
         DrawDefaultInspector();
 
+        var cc = ((CreepCell) target);
+        _editableFillingLevel = cc.FillingLevel;
         EditorGUILayout.BeginVertical();
         CellFilling = EditorGUILayout.Slider(_editableFillingLevel, 0, 1);
         EditorGUILayout.EndVertical();
 
         if (GUILayout.Button("Regenerate"))
         {
-            CreepCell cc = (CreepCell) target;
             cc.UpdateMesh();
         }
     }
