@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Xml.Serialization;
 using UnityEngine;
@@ -15,17 +16,34 @@ public class CreepCell : MonoBehaviour
     // Directions: 
     // U = Up,   F = Forward, D = Down, 
     // L = Left, R = Right,   B = Back, 
+    // M = Middle
+    //    0------1  UpForwardRight   = UFR = 0  
+    //   /.  F  /|  UpForward Left   = UFL = 1  
+    //  / . U  / |  UpBackLeft       = UBL = 2  
+    // /R 4.../..5  UpBackRight      = UBR = 3  
+    // 2-----3 L/   DownForwardRight = DFR = 4  
+    // | . D | /    DownForwardLeft  = DFL = 5  
+    // |. B  |/     DownBackLeft     = DBL = 6  
+    // 6-----7      DownBackRight    = DBR = 7  
     //
-    //    4------5   0 = UBL = UpBackLeft
-    //   /.  F  /|   1 = UBR = UpBackRight
-    //  / . U  / |   2 = DBL = DownBackLeft
-    // /R 6.../..7   3 = DBR = DownBackRight
-    // 0-----1 L/    4 = UFR = UpForwardRight
-    // | . D | /     5 = UFL = UpForward Left
-    // |. B  |/      6 = DFR = DownForwardRight
-    // 2-----3       7 = DFL = DownForwardLeft
-    //
-    //
+
+    enum PIC // PointInCell
+    {
+        UFR = 0,
+        UFL = 1,
+        UBL = 2,
+        UBR = 3,
+        DFR = 4,
+        DFL = 5,
+        DBL = 6,
+        DBR = 7,
+        UM = 9,
+        FM = 10,
+        DM = 11,
+        LM = 12,
+        RM = 13,
+        BM = 14
+    }
 
     // 6 sides 
     private const int _cellSideCount = 6;
@@ -60,7 +78,7 @@ public class CreepCell : MonoBehaviour
     {
         get
         {
-            return _fillingLevel;
+            return (float)Math.Sin(_fillingLevel * Math.PI);
         }
         set
         {
@@ -86,9 +104,28 @@ public class CreepCell : MonoBehaviour
         UpdateMesh();
     }
 
+    private Boolean _updateDirection = true;
     // Update is called once per frame
     void Update()
     {
+        if (_updateDirection)
+        {
+            if (_fillingLevel < 1.0f)
+                _fillingLevel += 0.01f;
+
+            if (_fillingLevel >= 1.0f)
+                _updateDirection = !_updateDirection;
+        }
+        else
+        {
+            if (_fillingLevel > 0.0f)
+                _fillingLevel -= 0.01f;
+
+            if (_fillingLevel <= 0.0f)
+                _updateDirection = !_updateDirection;
+        }
+        UpdateMesh();
+
     }
 
     public void UpdateMesh()
@@ -129,29 +166,15 @@ public class CreepCell : MonoBehaviour
     private void GenerateUpSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating UP with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 1);
-        _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, 1);
+        _vertices[verticesOffset + 0] = P(PIC.UFL);
+        _vertices[verticesOffset + 1] = P(PIC.UFR);
 
-        _vertices[verticesOffset + 2] = UM;
+        _vertices[verticesOffset + 2] = P(PIC.UM);
 
-        _vertices[verticesOffset + 3] = new Vector3(0, _fillingLevel, 0);
-        _vertices[verticesOffset + 4] = new Vector3(1, _fillingLevel, 0);
+        _vertices[verticesOffset + 3] = P(PIC.UBL);
+        _vertices[verticesOffset + 4] = P(PIC.UBR);
 
-        _triangles[trianglesOffset + 0] = verticesOffset + 0;
-        _triangles[trianglesOffset + 1] = verticesOffset + 1;
-        _triangles[trianglesOffset + 2] = verticesOffset + 2;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 0;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 3;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 2;
-        _triangles[trianglesOffset + 7] = verticesOffset + 1;
-        _triangles[trianglesOffset + 8] = verticesOffset + 4;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 3;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 4;
+        SetTrianglesForSide(verticesOffset, trianglesOffset);
 
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _uv[i] = Vector2.zero;
@@ -163,29 +186,15 @@ public class CreepCell : MonoBehaviour
     private void GenerateForwardSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating FORWARD with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 1);
-        _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, 1);
+        _vertices[verticesOffset + 0] = P(PIC.UFR);
+        _vertices[verticesOffset + 1] = P(PIC.UFL);
 
-        _vertices[verticesOffset + 2] = FM;
+        _vertices[verticesOffset + 2] = P(PIC.FM);
 
-        _vertices[verticesOffset + 3] = new Vector3(0, 0, 1);
-        _vertices[verticesOffset + 4] = new Vector3(1, 0, 1);
+        _vertices[verticesOffset + 3] = P(PIC.DFR);
+        _vertices[verticesOffset + 4] = P(PIC.DFL);
 
-        _triangles[trianglesOffset + 0] = verticesOffset + 2;
-        _triangles[trianglesOffset + 1] = verticesOffset + 1;
-        _triangles[trianglesOffset + 2] = verticesOffset + 0;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 3;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 0;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 4;
-        _triangles[trianglesOffset + 7] = verticesOffset + 1;
-        _triangles[trianglesOffset + 8] = verticesOffset + 3;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 4;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 3;
+        SetTrianglesForSide(verticesOffset, trianglesOffset);
 
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _uv[i] = Vector2.zero;
@@ -196,29 +205,15 @@ public class CreepCell : MonoBehaviour
 
     private void GenerateDownSideOfMesh(int verticesOffset, int trianglesOffset)
     {
-        Debug.Log("Generating DOWN with offsets: " + verticesOffset + " + " + trianglesOffset);
+        //Debug.Log("Generating DOWN with offsets: " + verticesOffset + " + " + trianglesOffset);
         // up, just flipped left to right
-        _vertices[verticesOffset + 0] = new Vector3(0, 0, 1);
-        _vertices[verticesOffset + 1] = new Vector3(1, 0, 1);
-        _vertices[verticesOffset + 2] = DM;
-        _vertices[verticesOffset + 3] = new Vector3(0, 0, 0);
-        _vertices[verticesOffset + 4] = new Vector3(1, 0, 0);
+        _vertices[verticesOffset + 0] = P(PIC.DFR);
+        _vertices[verticesOffset + 1] = P(PIC.DFL);
+        _vertices[verticesOffset + 2] = P(PIC.DM);
+        _vertices[verticesOffset + 3] = P(PIC.DBR);
+        _vertices[verticesOffset + 4] = P(PIC.DBL);
 
-        _triangles[trianglesOffset + 0] = verticesOffset + 1;
-        _triangles[trianglesOffset + 1] = verticesOffset + 0;
-        _triangles[trianglesOffset + 2] = verticesOffset + 2;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 1;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 4;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 2;
-        _triangles[trianglesOffset + 7] = verticesOffset + 0;
-        _triangles[trianglesOffset + 8] = verticesOffset + 3;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 4;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 3;
+        SetTrianglesForSide(verticesOffset, trianglesOffset);
 
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _uv[i] = Vector2.zero;
@@ -230,27 +225,13 @@ public class CreepCell : MonoBehaviour
     private void GenerateLeftSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating LEFT with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 1);
-        _vertices[verticesOffset + 1] = new Vector3(0, _fillingLevel, 0);
-        _vertices[verticesOffset + 2] = LM;
-        _vertices[verticesOffset + 3] = new Vector3(0, 0, 1);
-        _vertices[verticesOffset + 4] = new Vector3(0, 0, 0);
+        _vertices[verticesOffset + 0] = P(PIC.UFL);
+        _vertices[verticesOffset + 1] = P(PIC.UBL);
+        _vertices[verticesOffset + 2] = P(PIC.LM);
+        _vertices[verticesOffset + 3] = P(PIC.DFL);
+        _vertices[verticesOffset + 4] = P(PIC.DBL);
 
-        _triangles[trianglesOffset + 0] = verticesOffset + 2;
-        _triangles[trianglesOffset + 1] = verticesOffset + 0;
-        _triangles[trianglesOffset + 2] = verticesOffset + 1;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 4;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 1;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 3;
-        _triangles[trianglesOffset + 7] = verticesOffset + 0;
-        _triangles[trianglesOffset + 8] = verticesOffset + 2;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 3;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 4;
+        SetTrianglesForSide(verticesOffset, trianglesOffset);
 
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _uv[i] = Vector2.zero;
@@ -262,27 +243,13 @@ public class CreepCell : MonoBehaviour
     private void GenerateRightSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating RIGHT with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = new Vector3(1, _fillingLevel, 1);
-        _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, 0);
-        _vertices[verticesOffset + 2] = RM;
-        _vertices[verticesOffset + 3] = new Vector3(1, 0, 1);
-        _vertices[verticesOffset + 4] = new Vector3(1, 0, 0);
+        _vertices[verticesOffset + 0] = P(PIC.UBR);
+        _vertices[verticesOffset + 1] = P(PIC.UFR);
+        _vertices[verticesOffset + 2] = P(PIC.RM);
+        _vertices[verticesOffset + 3] = P(PIC.DBR);
+        _vertices[verticesOffset + 4] = P(PIC.DFR);
 
-        _triangles[trianglesOffset + 0] = verticesOffset + 1;
-        _triangles[trianglesOffset + 1] = verticesOffset + 0;
-        _triangles[trianglesOffset + 2] = verticesOffset + 2;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 1;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 4;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 2;
-        _triangles[trianglesOffset + 7] = verticesOffset + 0;
-        _triangles[trianglesOffset + 8] = verticesOffset + 3;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 4;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 3;
+        SetTrianglesForSide(verticesOffset, trianglesOffset);
 
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _uv[i] = Vector2.zero;
@@ -294,27 +261,13 @@ public class CreepCell : MonoBehaviour
     private void GenerateBackSideOfMesh(int verticesOffset, int trianglesOffset)
     {
         //Debug.Log("Generating BACK with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 0);
-        _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, 0);
-        _vertices[verticesOffset + 2] = BM;
-        _vertices[verticesOffset + 3] = new Vector3(0, 0, 0);
-        _vertices[verticesOffset + 4] = new Vector3(1, 0, 0);
+        _vertices[verticesOffset + 0] = P(PIC.UBL);
+        _vertices[verticesOffset + 1] = P(PIC.UBR);
+        _vertices[verticesOffset + 2] = P(PIC.BM);
+        _vertices[verticesOffset + 3] = P(PIC.DBL);
+        _vertices[verticesOffset + 4] = P(PIC.DBR);
 
-        _triangles[trianglesOffset + 0] = verticesOffset + 0;
-        _triangles[trianglesOffset + 1] = verticesOffset + 1;
-        _triangles[trianglesOffset + 2] = verticesOffset + 2;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 0;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 3;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 3;
-        _triangles[trianglesOffset + 7] = verticesOffset + 1;
-        _triangles[trianglesOffset + 8] = verticesOffset + 4;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 3;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 4;
+        SetTrianglesForSide(verticesOffset, trianglesOffset);
 
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _uv[i] = Vector2.zero;
@@ -323,117 +276,47 @@ public class CreepCell : MonoBehaviour
             _normals[i] = Vector3.back;
     }
 
-    #region MiddleProperties
-    private Vector3 UM
+    private void SetTrianglesForSide(int verticesOffset, int trianglesOffset)
     {
-        get
-        {
-            return new Vector3(0.5f, _fillingLevel, 0.5f);
-        }
+        _triangles[trianglesOffset + 0] = verticesOffset + 0;
+        _triangles[trianglesOffset + 1] = verticesOffset + 1;
+        _triangles[trianglesOffset + 2] = verticesOffset + 2;
+
+        _triangles[trianglesOffset + 3] = verticesOffset + 0;
+        _triangles[trianglesOffset + 4] = verticesOffset + 2;
+        _triangles[trianglesOffset + 5] = verticesOffset + 3;
+
+        _triangles[trianglesOffset + 6] = verticesOffset + 2;
+        _triangles[trianglesOffset + 7] = verticesOffset + 1;
+        _triangles[trianglesOffset + 8] = verticesOffset + 4;
+
+        _triangles[trianglesOffset + 9] = verticesOffset + 3;
+        _triangles[trianglesOffset + 10] = verticesOffset + 2;
+        _triangles[trianglesOffset + 11] = verticesOffset + 4;
     }
 
-    private Vector3 FM
+    private Vector3 P(PIC p)
     {
-        get
+        switch (p)
         {
-            return new Vector3(0.5f, _fillingLevel / 2, 1);
+            case PIC.UFR: return new Vector3(1, FillingLevel, 1);
+            case PIC.UFL: return new Vector3(0, FillingLevel, 1);
+            case PIC.UBL: return new Vector3(0, FillingLevel, 0);
+            case PIC.UBR: return new Vector3(1, FillingLevel, 0);
+            case PIC.DFR: return new Vector3(1, 0, 1);
+            case PIC.DFL: return new Vector3(0, 0, 1);
+            case PIC.DBL: return new Vector3(0, 0, 0);
+            case PIC.DBR: return new Vector3(1, 0, 0);
+            case PIC.UM: return new Vector3(0.5f, FillingLevel, 0.5f);
+            case PIC.FM: return new Vector3(0.5f, FillingLevel / 2, 1);
+            case PIC.DM: return new Vector3(0.5f, 0, 0.5f);
+            case PIC.LM: return new Vector3(0, FillingLevel / 2, 0.5f);
+            case PIC.RM: return new Vector3(1, FillingLevel / 2, 0.5f);
+            case PIC.BM: return new Vector3(0.5f, FillingLevel / 2, 0);
+            default:
+                throw new ArgumentOutOfRangeException("p");
         }
     }
-
-    private Vector3 DM
-    {
-        get
-        {
-            return new Vector3(0.5f, 0, 0.5f);
-        }
-    }
-
-    private Vector3 LM
-    {
-        get
-        {
-            return new Vector3(0, _fillingLevel / 2, 0.5f);
-        }
-    }
-
-    private Vector3 RM
-    {
-        get
-        {
-            return new Vector3(1, _fillingLevel / 2, 0.5f);
-        }
-    }
-
-    private Vector3 BM
-    {
-        get
-        {
-            return new Vector3(0.5f, _fillingLevel / 2, 0);
-        }
-    }
-
-    #endregion
-
-    #region CornerProperties
-
-    private Vector3 UBL
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 UBR
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 DBL
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 DBR
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 UFR
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 UFL
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 DFR
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-    private Vector3 DFL
-    {
-        get
-        {
-            return new Vector3();
-        }
-    }
-
-    #endregion
 
     private void SetMesh()
     {
