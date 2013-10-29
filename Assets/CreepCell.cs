@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Runtime.Remoting.Messaging;
+using System.Xml.Serialization;
 using UnityEngine;
 using System.Collections;
 
@@ -10,6 +11,22 @@ using System.Collections;
 public class CreepCell : MonoBehaviour
 {
     // Layout of a cell:
+    // Cube with 8 Points for corners:
+    // Directions: 
+    // U = Up,   F = Forward, D = Down, 
+    // L = Left, R = Right,   B = Back, 
+    //
+    //    4------5   0 = UBL = UpBackLeft
+    //   /.  F  /|   1 = UBR = UpBackRight
+    //  / . U  / |   2 = DBL = DownBackLeft
+    // /R 6.../..7   3 = DBR = DownBackRight
+    // 0-----1 L/    4 = UFR = UpForwardRight
+    // | . D | /     5 = UFL = UpForward Left
+    // |. B  |/      6 = DFR = DownForwardRight
+    // 2-----3       7 = DFL = DownForwardLeft
+    //
+    //
+
     // 6 sides 
     private const int _cellSideCount = 6;
     // each side like this: 
@@ -114,7 +131,9 @@ public class CreepCell : MonoBehaviour
         //Debug.Log("Generating UP with offsets: " + verticesOffset + " + " + trianglesOffset);
         _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 0);
         _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, 0);
-        _vertices[verticesOffset + 2] = new Vector3(0.5f, _fillingLevel, -0.5f);
+
+        _vertices[verticesOffset + 2] = UM;
+
         _vertices[verticesOffset + 3] = new Vector3(0, _fillingLevel, -1);
         _vertices[verticesOffset + 4] = new Vector3(1, _fillingLevel, -1);
 
@@ -146,7 +165,9 @@ public class CreepCell : MonoBehaviour
         //Debug.Log("Generating FORWARD with offsets: " + verticesOffset + " + " + trianglesOffset);
         _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 0);
         _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, 0);
-        _vertices[verticesOffset + 2] = new Vector3(0.5f, _fillingLevel / 2, 0);
+
+        _vertices[verticesOffset + 2] = FM;
+
         _vertices[verticesOffset + 3] = new Vector3(0, 0, 0);
         _vertices[verticesOffset + 4] = new Vector3(1, 0, 0);
 
@@ -179,7 +200,7 @@ public class CreepCell : MonoBehaviour
         // up, just flipped left to right
         _vertices[verticesOffset + 0] = new Vector3(0, 0, 0);
         _vertices[verticesOffset + 1] = new Vector3(1, 0, 0);
-        _vertices[verticesOffset + 2] = new Vector3(0.5f, 0, -0.5f);
+        _vertices[verticesOffset + 2] = DM;
         _vertices[verticesOffset + 3] = new Vector3(0, 0, -1);
         _vertices[verticesOffset + 4] = new Vector3(1, 0, -1);
 
@@ -211,7 +232,7 @@ public class CreepCell : MonoBehaviour
         //Debug.Log("Generating LEFT with offsets: " + verticesOffset + " + " + trianglesOffset);
         _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, 0);
         _vertices[verticesOffset + 1] = new Vector3(0, _fillingLevel, -1);
-        _vertices[verticesOffset + 2] = new Vector3(0, _fillingLevel / 2, -0.5f);
+        _vertices[verticesOffset + 2] = LM;
         _vertices[verticesOffset + 3] = new Vector3(0, 0, 0);
         _vertices[verticesOffset + 4] = new Vector3(0, 0, -1);
 
@@ -243,7 +264,7 @@ public class CreepCell : MonoBehaviour
         //Debug.Log("Generating RIGHT with offsets: " + verticesOffset + " + " + trianglesOffset);
         _vertices[verticesOffset + 0] = new Vector3(1, _fillingLevel, 0);
         _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, -1);
-        _vertices[verticesOffset + 2] = new Vector3(1, _fillingLevel / 2, -0.5f);
+        _vertices[verticesOffset + 2] = RM;
         _vertices[verticesOffset + 3] = new Vector3(1, 0, 0);
         _vertices[verticesOffset + 4] = new Vector3(1, 0, -1);
 
@@ -275,7 +296,7 @@ public class CreepCell : MonoBehaviour
         //Debug.Log("Generating BACK with offsets: " + verticesOffset + " + " + trianglesOffset);
         _vertices[verticesOffset + 0] = new Vector3(0, _fillingLevel, -1);
         _vertices[verticesOffset + 1] = new Vector3(1, _fillingLevel, -1);
-        _vertices[verticesOffset + 2] = new Vector3(0.5f, _fillingLevel / 2, -1);
+        _vertices[verticesOffset + 2] = BM;
         _vertices[verticesOffset + 3] = new Vector3(0, 0, -1);
         _vertices[verticesOffset + 4] = new Vector3(1, 0, -1);
 
@@ -301,6 +322,114 @@ public class CreepCell : MonoBehaviour
         for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
             _normals[i] = Vector3.back;
     }
+
+    #region MiddleProperties
+    private Vector3 UM
+    {
+        get
+        {
+            return new Vector3(0.5f, _fillingLevel, -0.5f);
+        }
+    }
+
+    private Vector3 FM
+    {
+        get
+        {
+            return new Vector3(0.5f, _fillingLevel / 2, 0);
+        }
+    }
+    private Vector3 DM
+    {
+        get
+        {
+            return new Vector3(0.5f, 0, -0.5f);
+        }
+    }
+    private Vector3 LM
+    {
+        get
+        {
+            return new Vector3(0, _fillingLevel / 2, -0.5f);
+        }
+    }
+    private Vector3 RM
+    {
+        get
+        {
+            return new Vector3(1, _fillingLevel / 2, -0.5f);
+        }
+    }
+    private Vector3 BM
+    {
+        get
+        {
+            return new Vector3(0.5f, _fillingLevel / 2, -1);
+        }
+    }
+
+    #endregion
+
+    #region CornerProperties
+
+    private Vector3 UBL
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 UBR
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 DBL
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 DBR
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 UFR
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 UFL
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 DFR
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+    private Vector3 DFL
+    {
+        get
+        {
+            return new Vector3();
+        }
+    }
+
+    #endregion
 
     private void SetMesh()
     {
