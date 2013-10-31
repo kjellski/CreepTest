@@ -78,7 +78,7 @@ public class CreepCell : MonoBehaviour
     {
         get
         {
-            return (float)Math.Sin(_fillingLevel * Math.PI);
+            return _fillingLevel;
         }
         set
         {
@@ -113,7 +113,7 @@ public class CreepCell : MonoBehaviour
             if (_fillingLevel < 1.0f)
                 _fillingLevel += 0.01f;
 
-            if (_fillingLevel >= 1.0f)
+            if (_fillingLevel >= 0.98f)
                 _updateDirection = !_updateDirection;
         }
         else
@@ -121,7 +121,7 @@ public class CreepCell : MonoBehaviour
             if (_fillingLevel > 0.0f)
                 _fillingLevel -= 0.01f;
 
-            if (_fillingLevel <= 0.0f)
+            if (_fillingLevel <= 0.02f)
                 _updateDirection = !_updateDirection;
         }
         UpdateMesh();
@@ -297,12 +297,16 @@ public class CreepCell : MonoBehaviour
 
     private Vector3 P(PIC p)
     {
+        var firstHalfOfCircle = Mathf.Sin(_fillingLevel * Mathf.PI) / 3;
+
         switch (p)
         {
-            case PIC.UFR: return new Vector3(1, FillingLevel, 1);
-            case PIC.UFL: return new Vector3(0, FillingLevel, 1);
-            case PIC.UBL: return new Vector3(0, FillingLevel, 0);
-            case PIC.UBR: return new Vector3(1, FillingLevel, 0);
+            /* Up 4 corners*/
+            case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingLevel, 1 - firstHalfOfCircle);
+            case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingLevel, 1 - firstHalfOfCircle);
+            case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingLevel, 0 + firstHalfOfCircle);
+            case PIC.UBR: return new Vector3(1 - firstHalfOfCircle, FillingLevel, 0 + firstHalfOfCircle);
+            /* Down 4 Corners*/
             case PIC.DFR: return new Vector3(1, 0, 1);
             case PIC.DFL: return new Vector3(0, 0, 1);
             case PIC.DBL: return new Vector3(0, 0, 0);
