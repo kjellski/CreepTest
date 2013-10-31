@@ -29,20 +29,20 @@ public class CreepCell : MonoBehaviour
 
     enum PIC // PointInCell
     {
-        UFR = 0,
-        UFL = 1,
-        UBL = 2,
-        UBR = 3,
-        DFR = 4,
-        DFL = 5,
-        DBL = 6,
-        DBR = 7,
-        UM = 9,
-        FM = 10,
-        DM = 11,
-        LM = 12,
-        RM = 13,
-        BM = 14
+        UBL = 0,
+        UBR = 1,
+        DBL = 2,
+        DBR = 3,
+        UFL = 4,
+        UFR = 5,
+        DFL = 6,
+        DFR = 7,
+        UM = 8,
+        FM = 9,
+        DM = 10,
+        LM = 11,
+        RM = 12,
+        BM = 13
     }
 
     // 6 sides 
@@ -65,7 +65,7 @@ public class CreepCell : MonoBehaviour
     // With filling, the 2 will rise first 
     private float _fillingLevel = 1;
 
-    private const int _verticesCount = _cellVerticesPerSide * _cellSideCount;
+    private const int _verticesCount = 14;
     // 3 points per vertice
     private const int _trianglesCount = _cellTrianglesPerSide * _cellSideCount;
 
@@ -96,8 +96,6 @@ public class CreepCell : MonoBehaviour
         }
     }
 
-    private MeshFilter _meshFilter;
-
     // Use this for initialization
     void Start()
     {
@@ -125,174 +123,107 @@ public class CreepCell : MonoBehaviour
                 _updateDirection = !_updateDirection;
         }
         UpdateMesh();
+    }
 
+    /// <summary>
+    /// Creates the initial Mesh, should later set the 
+    /// fixed points and then exclude them from calculation
+    /// </summary>
+    void InitializeMesh()
+    {
+        UpdateMesh();
     }
 
     public void UpdateMesh()
     {
-        var verticesOffset = 0;
-        var trianglesOffset = 0;
-        // up side 
-        GenerateUpSideOfMesh(verticesOffset, trianglesOffset);
-        verticesOffset += _cellVerticesPerSide;
-        trianglesOffset += _cellTrianglesPerSide;
-        // forward side 
-        GenerateForwardSideOfMesh(verticesOffset, trianglesOffset);
-        verticesOffset += _cellVerticesPerSide;
-        trianglesOffset += _cellTrianglesPerSide;
-        // down side
-        GenerateDownSideOfMesh(verticesOffset, trianglesOffset);
-        verticesOffset += _cellVerticesPerSide;
-        trianglesOffset += _cellTrianglesPerSide;
-        // left side
-        GenerateLeftSideOfMesh(verticesOffset, trianglesOffset);
-        verticesOffset += _cellVerticesPerSide;
-        trianglesOffset += _cellTrianglesPerSide;
-        // right side
-        GenerateRightSideOfMesh(verticesOffset, trianglesOffset);
-        verticesOffset += _cellVerticesPerSide;
-        trianglesOffset += _cellTrianglesPerSide;
-        // backward side
-        GenerateBackSideOfMesh(verticesOffset, trianglesOffset);
+        _vertices[(int)PIC.UBL] = P(PIC.UBL);
+        _vertices[(int)PIC.UBR] = P(PIC.UBR);
+        _vertices[(int)PIC.DBL] = P(PIC.DBL);
+        _vertices[(int)PIC.DBR] = P(PIC.DBR);
+
+        _vertices[(int)PIC.UFL] = P(PIC.UFL);
+        _vertices[(int)PIC.UFR] = P(PIC.UFR);
+        _vertices[(int)PIC.DFL] = P(PIC.DFL);
+        _vertices[(int)PIC.DFR] = P(PIC.DFR);
+
+        _vertices[(int)PIC.UM] = P(PIC.UM);
+        _vertices[(int)PIC.FM] = P(PIC.FM);
+        _vertices[(int)PIC.DM] = P(PIC.DM);
+        _vertices[(int)PIC.LM] = P(PIC.LM);
+        _vertices[(int)PIC.RM] = P(PIC.RM);
+        _vertices[(int)PIC.BM] = P(PIC.BM);
+
+        _normals[(int)PIC.UBL] = new Vector3(-1, 1, -1);
+        _normals[(int)PIC.UBR] = new Vector3(1, 1, -1);
+        _normals[(int)PIC.DBL] = new Vector3(-1, -1, -1);
+        _normals[(int)PIC.DBR] = new Vector3(1, -1, -1);
+
+        _normals[(int)PIC.UFL] = new Vector3(-1, 1, 1);
+        _normals[(int)PIC.UFR] = new Vector3(1, 1, 1);
+        _normals[(int)PIC.DFL] = new Vector3(-1, -1, 1);
+        _normals[(int)PIC.DFR] = new Vector3(1, -1, 1);
+
+        _normals[(int)PIC.UM] = Vector3.up;
+        _normals[(int)PIC.FM] = Vector3.forward;
+        _normals[(int)PIC.DM] = Vector3.down;
+        _normals[(int)PIC.LM] = Vector3.left;
+        _normals[(int)PIC.RM] = Vector3.right;
+        _normals[(int)PIC.BM] = Vector3.back;
+
+        // zero out the material
+        for (int i = 0; i < _verticesCount; i++)
+            _uv[i] = Vector2.zero;
+
+        var triangleOffset = 0;
+        SetTrianglesForSide(triangleOffset, (int)PIC.UFL, (int)PIC.UFR, (int)PIC.UM, (int)PIC.UBL, (int)PIC.UBR); // UP
+        triangleOffset += _cellTrianglesPerSide;
+        SetTrianglesForSide(triangleOffset, (int)PIC.UFR, (int)PIC.UFL, (int)PIC.FM, (int)PIC.DFR, (int)PIC.DFL); // FORWARD
+        triangleOffset += _cellTrianglesPerSide;
+        SetTrianglesForSide(triangleOffset, (int)PIC.DFR, (int)PIC.DFL, (int)PIC.DM, (int)PIC.DBR, (int)PIC.DBL); // DOWN
+        triangleOffset += _cellTrianglesPerSide;
+        SetTrianglesForSide(triangleOffset, (int)PIC.UFL, (int)PIC.UBL, (int)PIC.LM, (int)PIC.DFL, (int)PIC.DBL); // LEFT
+        triangleOffset += _cellTrianglesPerSide;
+        SetTrianglesForSide(triangleOffset, (int)PIC.UBR, (int)PIC.UFR, (int)PIC.RM, (int)PIC.DBR, (int)PIC.DFR); // RIGHT
+        triangleOffset += _cellTrianglesPerSide;
+        SetTrianglesForSide(triangleOffset, (int)PIC.UBL, (int)PIC.UBR, (int)PIC.BM, (int)PIC.DBL, (int)PIC.DBR); // BACK
 
         SetMesh();
     }
 
-    private float CalculateHighestSideEvelevation()
+    /// <summary>
+    /// This method, sets all the triangles between the parameters to generate 4 triangles in total like so:
+    /// UL---UR
+    /// |\   /|
+    /// | \0/ |
+    /// |1 M 2|
+    /// | /3\ |
+    /// |/   \|
+    /// DL---DR
+    /// </summary>
+    /// <param name="trianglesOffset">offset from where on to set the triangles in <see cref="_triangles"/></param>
+    /// <param name="UL">Upper Left corner of the side</param>
+    /// <param name="UR">Upper Right corner of the side</param>
+    /// <param name="M">Middle of the side</param>
+    /// <param name="DL">Downer Left corner of the side</param>
+    /// <param name="DR">Downer Right corner of the side</param>
+    private void SetTrianglesForSide(int trianglesOffset, int UL, int UR, int M, int DL, int DR)
     {
-        return _fillingLevel;
-    }
-
-    private void GenerateUpSideOfMesh(int verticesOffset, int trianglesOffset)
-    {
-        //Debug.Log("Generating UP with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = P(PIC.UFL);
-        _vertices[verticesOffset + 1] = P(PIC.UFR);
-
-        _vertices[verticesOffset + 2] = P(PIC.UM);
-
-        _vertices[verticesOffset + 3] = P(PIC.UBL);
-        _vertices[verticesOffset + 4] = P(PIC.UBR);
-
-        SetTrianglesForSide(verticesOffset, trianglesOffset);
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _uv[i] = Vector2.zero;
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _normals[i] = Vector3.up;
-    }
-
-    private void GenerateForwardSideOfMesh(int verticesOffset, int trianglesOffset)
-    {
-        //Debug.Log("Generating FORWARD with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = P(PIC.UFR);
-        _vertices[verticesOffset + 1] = P(PIC.UFL);
-
-        _vertices[verticesOffset + 2] = P(PIC.FM);
-
-        _vertices[verticesOffset + 3] = P(PIC.DFR);
-        _vertices[verticesOffset + 4] = P(PIC.DFL);
-
-        SetTrianglesForSide(verticesOffset, trianglesOffset);
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _uv[i] = Vector2.zero;
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _normals[i] = Vector3.forward;
-    }
-
-    private void GenerateDownSideOfMesh(int verticesOffset, int trianglesOffset)
-    {
-        //Debug.Log("Generating DOWN with offsets: " + verticesOffset + " + " + trianglesOffset);
-        // up, just flipped left to right
-        _vertices[verticesOffset + 0] = P(PIC.DFR);
-        _vertices[verticesOffset + 1] = P(PIC.DFL);
-        _vertices[verticesOffset + 2] = P(PIC.DM);
-        _vertices[verticesOffset + 3] = P(PIC.DBR);
-        _vertices[verticesOffset + 4] = P(PIC.DBL);
-
-        SetTrianglesForSide(verticesOffset, trianglesOffset);
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _uv[i] = Vector2.zero;
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _normals[i] = Vector3.down;
-    }
-
-    private void GenerateLeftSideOfMesh(int verticesOffset, int trianglesOffset)
-    {
-        //Debug.Log("Generating LEFT with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = P(PIC.UFL);
-        _vertices[verticesOffset + 1] = P(PIC.UBL);
-        _vertices[verticesOffset + 2] = P(PIC.LM);
-        _vertices[verticesOffset + 3] = P(PIC.DFL);
-        _vertices[verticesOffset + 4] = P(PIC.DBL);
-
-        SetTrianglesForSide(verticesOffset, trianglesOffset);
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _uv[i] = Vector2.zero;
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _normals[i] = Vector3.left;
-    }
-
-    private void GenerateRightSideOfMesh(int verticesOffset, int trianglesOffset)
-    {
-        //Debug.Log("Generating RIGHT with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = P(PIC.UBR);
-        _vertices[verticesOffset + 1] = P(PIC.UFR);
-        _vertices[verticesOffset + 2] = P(PIC.RM);
-        _vertices[verticesOffset + 3] = P(PIC.DBR);
-        _vertices[verticesOffset + 4] = P(PIC.DFR);
-
-        SetTrianglesForSide(verticesOffset, trianglesOffset);
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _uv[i] = Vector2.zero;
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _normals[i] = Vector3.right;
-    }
-
-    private void GenerateBackSideOfMesh(int verticesOffset, int trianglesOffset)
-    {
-        //Debug.Log("Generating BACK with offsets: " + verticesOffset + " + " + trianglesOffset);
-        _vertices[verticesOffset + 0] = P(PIC.UBL);
-        _vertices[verticesOffset + 1] = P(PIC.UBR);
-        _vertices[verticesOffset + 2] = P(PIC.BM);
-        _vertices[verticesOffset + 3] = P(PIC.DBL);
-        _vertices[verticesOffset + 4] = P(PIC.DBR);
-
-        SetTrianglesForSide(verticesOffset, trianglesOffset);
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _uv[i] = Vector2.zero;
-
-        for (int i = verticesOffset; i < verticesOffset + _cellVerticesPerSide; i++)
-            _normals[i] = Vector3.back;
-    }
-
-    private void SetTrianglesForSide(int verticesOffset, int trianglesOffset)
-    {
-        _triangles[trianglesOffset + 0] = verticesOffset + 0;
-        _triangles[trianglesOffset + 1] = verticesOffset + 1;
-        _triangles[trianglesOffset + 2] = verticesOffset + 2;
-
-        _triangles[trianglesOffset + 3] = verticesOffset + 0;
-        _triangles[trianglesOffset + 4] = verticesOffset + 2;
-        _triangles[trianglesOffset + 5] = verticesOffset + 3;
-
-        _triangles[trianglesOffset + 6] = verticesOffset + 2;
-        _triangles[trianglesOffset + 7] = verticesOffset + 1;
-        _triangles[trianglesOffset + 8] = verticesOffset + 4;
-
-        _triangles[trianglesOffset + 9] = verticesOffset + 3;
-        _triangles[trianglesOffset + 10] = verticesOffset + 2;
-        _triangles[trianglesOffset + 11] = verticesOffset + 4;
+        // upper
+        _triangles[trianglesOffset + 0] = UL;
+        _triangles[trianglesOffset + 1] = UR;
+        _triangles[trianglesOffset + 2] = M;
+        // left
+        _triangles[trianglesOffset + 3] = UL;
+        _triangles[trianglesOffset + 4] = M;
+        _triangles[trianglesOffset + 5] = DL;
+        // right
+        _triangles[trianglesOffset + 6] = M;
+        _triangles[trianglesOffset + 7] = UR;
+        _triangles[trianglesOffset + 8] = DR;
+        // lower
+        _triangles[trianglesOffset + 9] = DL;
+        _triangles[trianglesOffset + 10] = M;
+        _triangles[trianglesOffset + 11] = DR;
     }
 
     private Vector3 P(PIC p)
@@ -301,7 +232,7 @@ public class CreepCell : MonoBehaviour
 
         switch (p)
         {
-            /* Up 4 corners*/
+            ///* Up 4 corners*/
             case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingLevel, 1 - firstHalfOfCircle);
             case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingLevel, 1 - firstHalfOfCircle);
             case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingLevel, 0 + firstHalfOfCircle);
@@ -311,8 +242,9 @@ public class CreepCell : MonoBehaviour
             case PIC.DFL: return new Vector3(0, 0, 1);
             case PIC.DBL: return new Vector3(0, 0, 0);
             case PIC.DBR: return new Vector3(1, 0, 0);
+            /* Middles */
             case PIC.UM: return new Vector3(0.5f, FillingLevel, 0.5f);
-            case PIC.FM: return new Vector3(0.5f, FillingLevel / 2, 1);
+            case PIC.FM: return new Vector3(0.5f, FillingLevel / 2, 1.0f);
             case PIC.DM: return new Vector3(0.5f, 0, 0.5f);
             case PIC.LM: return new Vector3(0, FillingLevel / 2, 0.5f);
             case PIC.RM: return new Vector3(1, FillingLevel / 2, 0.5f);
@@ -324,15 +256,14 @@ public class CreepCell : MonoBehaviour
 
     private void SetMesh()
     {
-        if (_meshFilter == null)
-            _meshFilter = GetComponent<MeshFilter>();
+        var mesh = GetComponent<MeshFilter>().sharedMesh;
+        
+        var vertecies = mesh.vertices;
+        vertecies = _vertices;
+        mesh.vertices = vertecies;
 
-        _meshFilter.mesh = new Mesh
-        {
-            vertices = _vertices,
-            triangles = _triangles,
-            normals = _normals,
-            uv = _uv
-        };
+        mesh.triangles = _triangles;
+        mesh.normals = _normals;
+        mesh.uv = _uv;
     }
 }
