@@ -11,6 +11,14 @@ using System.Collections;
 [RequireComponent(typeof(MeshCollider))]
 public class CreepCell : MonoBehaviour
 {
+    public static float Height
+    {
+        get
+        {
+            return 1.0f;
+        }
+    }
+
     // Layout of a cell:
     // Cube with 8 Points for corners:
     // Directions: 
@@ -256,14 +264,12 @@ public class CreepCell : MonoBehaviour
 
     private void SetMesh()
     {
-        var mesh = GetComponent<MeshFilter>().sharedMesh;
-        
-        var vertecies = mesh.vertices;
-        vertecies = _vertices;
-        mesh.vertices = vertecies;
-
-        mesh.triangles = _triangles;
-        mesh.normals = _normals;
-        mesh.uv = _uv;
+        GetComponent<MeshFilter>().mesh = new Mesh
+        {
+            vertices = _vertices,
+            triangles = _triangles,
+            normals = _normals,
+            uv = _uv
+        };
     }
 }
