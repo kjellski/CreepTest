@@ -29,6 +29,8 @@ public class CreepCell : MonoBehaviour, IFillable
         }
     }
 
+    public Mesh mesh = new Mesh();
+
     enum PIC // PointInCell
     {
         UBL = 0,
@@ -64,17 +66,17 @@ public class CreepCell : MonoBehaviour, IFillable
     // | /3\ |
     // \-----/
     private const int _cellTrianglesPerSide = 4 * 3;
-    // With filling, the 2 will rise first 
-    private float _fillingHeight = 1;
+
+    private float _fillingHeight = 0;
 
     private const int _verticesCount = 14;
     // 3 points per vertice
     private const int _trianglesCount = _cellTrianglesPerSide * _cellSideCount;
 
-    private readonly Vector3[] _vertices = new Vector3[_verticesCount];
-    private readonly Vector3[] _normals = new Vector3[_verticesCount];
-    private readonly Vector2[] _uv = new Vector2[_verticesCount];
-    private readonly int[] _triangles = new int[_trianglesCount];
+    private Vector3[] _vertices;
+    private Vector3[] _normals;
+    private Vector2[] _uv;
+    private int[] _triangles;
 
     public float FillingHeight
     {
@@ -84,7 +86,7 @@ public class CreepCell : MonoBehaviour, IFillable
         }
         set
         {
-            if (_fillingHeight == value)
+            if (Mathf.Abs(_fillingHeight - value) < Mathf.Epsilon) // if nearly the same
                 return;
 
             if (value > 1)
@@ -101,29 +103,17 @@ public class CreepCell : MonoBehaviour, IFillable
     // Use this for initialization
     void Start()
     {
+        _vertices = new Vector3[_verticesCount];
+        _normals = new Vector3[_verticesCount];
+        _uv = new Vector2[_verticesCount];
+        _triangles = new int[_trianglesCount];
         UpdateMesh();
     }
 
-    private Boolean _updateDirection = true;
+    //private Boolean _updateDirection = true;
     // Update is called once per frame
     void Update()
     {
-        if (_updateDirection)
-        {
-            if (_fillingHeight < 1.0f)
-                _fillingHeight += 0.01f;
-
-            if (_fillingHeight >= 0.98f)
-                _updateDirection = !_updateDirection;
-        }
-        else
-        {
-            if (_fillingHeight > 0.0f)
-                _fillingHeight -= 0.01f;
-
-            if (_fillingHeight <= 0.02f)
-                _updateDirection = !_updateDirection;
-        }
         UpdateMesh();
     }
 
@@ -234,7 +224,7 @@ public class CreepCell : MonoBehaviour, IFillable
 
         switch (p)
         {
-            ///* Up 4 corners*/
+            /* Up 4 corners*/
             case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingHeight, 1 - firstHalfOfCircle);
             case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingHeight, 1 - firstHalfOfCircle);
             case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingHeight, 0 + firstHalfOfCircle);
@@ -258,14 +248,34 @@ public class CreepCell : MonoBehaviour, IFillable
 
     private void SetMesh()
     {
-
-
-        GetComponent<MeshFilter>().mesh = new Mesh
+        // if gloal doesn't exist
+        if (mesh == null)
         {
-            vertices = _vertices,
-            triangles = _triangles,
-            normals = _normals,
-            uv = _uv
-        };
+            mesh = new Mesh
+            {
+                vertices = _vertices,
+                triangles = _triangles,
+                normals = _normals,
+                uv = _uv
+            };
+        }
+        else
+        {
+            mesh.vertices = _vertices;
+            mesh.triangles = _triangles;
+            mesh.normals = _normals;
+            mesh.uv = _uv;
+        }
+
+        var meshFilter = GetComponent<MeshFilter>();
+        if (meshFilter.sharedMesh == null)
+            meshFilter.mesh = mesh;
+        else
+        {
+            meshFilter.sharedMesh.vertices = _vertices;
+            meshFilter.sharedMesh.triangles = _triangles;
+            meshFilter.sharedMesh.normals = _normals;
+            meshFilter.sharedMesh.uv = _uv;
+        }
     }
 }

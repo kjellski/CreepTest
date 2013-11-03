@@ -79,6 +79,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cd1f700b63abd64fb7651e145d7f0f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mesh: {fileID: 0}
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

@@ -19,7 +19,7 @@ public class CreepCellInspector : Editor
             _editableFillingLevel = value;
             CreepCell cc = (CreepCell)target;
             cc.FillingHeight = _editableFillingLevel;
-            Debug.Log("Set CellFilling to: " + _editableFillingLevel);
+            //Debug.Log("Set CellFilling to: " + _editableFillingLevel);
         }
     }
 
