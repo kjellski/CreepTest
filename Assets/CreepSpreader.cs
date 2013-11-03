@@ -1,6 +1,4 @@
-﻿using System.Security.Policy;
-using UnityEngine;
-using System.Collections;
+﻿using UnityEngine;
 
 public class CreepSpreader : MonoBehaviour
 {

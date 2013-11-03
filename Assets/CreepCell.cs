@@ -1,15 +1,25 @@
 ﻿using System;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Xml.Serialization;
 using UnityEngine;
-using System.Collections;
 
+// Layout of a cell:
+// Cube with 8 Points for corners:
+// Directions: 
+// U = Up,   F = Forward, D = Down, 
+// L = Left, R = Right,   B = Back, 
+// M = Middle
+//    0------1  UpForwardRight   = UFR = 0  
+//   /.  F  /|  UpForward Left   = UFL = 1  
+//  / . U  / |  UpBackLeft       = UBL = 2  
+// /R 4.../..5  UpBackRight      = UBR = 3  
+// 2-----3 L/   DownForwardRight = DFR = 4  
+// | . D | /    DownForwardLeft  = DFL = 5  
+// |. B  |/     DownBackLeft     = DBL = 6  
+// 6-----7      DownBackRight    = DBR = 7  
 [ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshCollider))]
-public class CreepCell : MonoBehaviour
+public class CreepCell : MonoBehaviour, IFillable
 {
     public static float Height
     {
@@ -18,22 +28,6 @@ public class CreepCell : MonoBehaviour
             return 1.0f;
         }
     }
-
-    // Layout of a cell:
-    // Cube with 8 Points for corners:
-    // Directions: 
-    // U = Up,   F = Forward, D = Down, 
-    // L = Left, R = Right,   B = Back, 
-    // M = Middle
-    //    0------1  UpForwardRight   = UFR = 0  
-    //   /.  F  /|  UpForward Left   = UFL = 1  
-    //  / . U  / |  UpBackLeft       = UBL = 2  
-    // /R 4.../..5  UpBackRight      = UBR = 3  
-    // 2-----3 L/   DownForwardRight = DFR = 4  
-    // | . D | /    DownForwardLeft  = DFL = 5  
-    // |. B  |/     DownBackLeft     = DBL = 6  
-    // 6-----7      DownBackRight    = DBR = 7  
-    //
 
     enum PIC // PointInCell
     {
@@ -71,7 +65,7 @@ public class CreepCell : MonoBehaviour
     // \-----/
     private const int _cellTrianglesPerSide = 4 * 3;
     // With filling, the 2 will rise first 
-    private float _fillingLevel = 1;
+    private float _fillingHeight = 1;
 
     private const int _verticesCount = 14;
     // 3 points per vertice
@@ -82,23 +76,23 @@ public class CreepCell : MonoBehaviour
     private readonly Vector2[] _uv = new Vector2[_verticesCount];
     private readonly int[] _triangles = new int[_trianglesCount];
 
-    public float FillingLevel
+    public float FillingHeight
     {
         get
         {
-            return _fillingLevel;
+            return _fillingHeight;
         }
         set
         {
-            if (_fillingLevel == value)
+            if (_fillingHeight == value)
                 return;
 
             if (value > 1)
-                _fillingLevel = 1;
+                _fillingHeight = 1;
             else if (value < 0)
-                _fillingLevel = 0;
+                _fillingHeight = 0;
             else
-                _fillingLevel = value;
+                _fillingHeight = value;
 
             UpdateMesh();
         }
@@ -116,18 +110,18 @@ public class CreepCell : MonoBehaviour
     {
         if (_updateDirection)
         {
-            if (_fillingLevel < 1.0f)
-                _fillingLevel += 0.01f;
+            if (_fillingHeight < 1.0f)
+                _fillingHeight += 0.01f;
 
-            if (_fillingLevel >= 0.98f)
+            if (_fillingHeight >= 0.98f)
                 _updateDirection = !_updateDirection;
         }
         else
         {
-            if (_fillingLevel > 0.0f)
-                _fillingLevel -= 0.01f;
+            if (_fillingHeight > 0.0f)
+                _fillingHeight -= 0.01f;
 
-            if (_fillingLevel <= 0.02f)
+            if (_fillingHeight <= 0.02f)
                 _updateDirection = !_updateDirection;
         }
         UpdateMesh();
@@ -236,27 +230,27 @@ public class CreepCell : MonoBehaviour
 
     private Vector3 P(PIC p)
     {
-        var firstHalfOfCircle = Mathf.Sin(_fillingLevel * Mathf.PI) / 3;
+        var firstHalfOfCircle = Mathf.Sin(_fillingHeight * Mathf.PI) / 3;
 
         switch (p)
         {
             ///* Up 4 corners*/
-            case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingLevel, 1 - firstHalfOfCircle);
-            case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingLevel, 1 - firstHalfOfCircle);
-            case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingLevel, 0 + firstHalfOfCircle);
-            case PIC.UBR: return new Vector3(1 - firstHalfOfCircle, FillingLevel, 0 + firstHalfOfCircle);
+            case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingHeight, 1 - firstHalfOfCircle);
+            case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingHeight, 1 - firstHalfOfCircle);
+            case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingHeight, 0 + firstHalfOfCircle);
+            case PIC.UBR: return new Vector3(1 - firstHalfOfCircle, FillingHeight, 0 + firstHalfOfCircle);
             /* Down 4 Corners*/
             case PIC.DFR: return new Vector3(1, 0, 1);
             case PIC.DFL: return new Vector3(0, 0, 1);
             case PIC.DBL: return new Vector3(0, 0, 0);
             case PIC.DBR: return new Vector3(1, 0, 0);
             /* Middles */
-            case PIC.UM: return new Vector3(0.5f, FillingLevel, 0.5f);
-            case PIC.FM: return new Vector3(0.5f, FillingLevel / 2, 1.0f);
+            case PIC.UM: return new Vector3(0.5f, FillingHeight, 0.5f);
+            case PIC.FM: return new Vector3(0.5f, FillingHeight / 2, 1.0f);
             case PIC.DM: return new Vector3(0.5f, 0, 0.5f);
-            case PIC.LM: return new Vector3(0, FillingLevel / 2, 0.5f);
-            case PIC.RM: return new Vector3(1, FillingLevel / 2, 0.5f);
-            case PIC.BM: return new Vector3(0.5f, FillingLevel / 2, 0);
+            case PIC.LM: return new Vector3(0, FillingHeight / 2, 0.5f);
+            case PIC.RM: return new Vector3(1, FillingHeight / 2, 0.5f);
+            case PIC.BM: return new Vector3(0.5f, FillingHeight / 2, 0);
             default:
                 throw new ArgumentOutOfRangeException("p");
         }
@@ -264,6 +258,8 @@ public class CreepCell : MonoBehaviour
 
     private void SetMesh()
     {
+
+
         GetComponent<MeshFilter>().mesh = new Mesh
         {
             vertices = _vertices,
