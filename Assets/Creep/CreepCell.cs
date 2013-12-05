@@ -225,22 +225,22 @@ public class CreepCell : MonoBehaviour, IFillable
         switch (p)
         {
             /* Up 4 corners*/
-            case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingHeight, 1 - firstHalfOfCircle);
-            case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingHeight, 1 - firstHalfOfCircle);
-            case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingHeight, 0 + firstHalfOfCircle);
-            case PIC.UBR: return new Vector3(1 - firstHalfOfCircle, FillingHeight, 0 + firstHalfOfCircle);
+            case PIC.UFR: return new Vector3(1 - firstHalfOfCircle, FillingHeight+1, 1 - firstHalfOfCircle);
+            case PIC.UFL: return new Vector3(0 + firstHalfOfCircle, FillingHeight+1, 1 - firstHalfOfCircle);
+            case PIC.UBL: return new Vector3(0 + firstHalfOfCircle, FillingHeight+1, 0 + firstHalfOfCircle);
+            case PIC.UBR: return new Vector3(1 - firstHalfOfCircle, FillingHeight+1, 0 + firstHalfOfCircle);
             /* Down 4 Corners*/
             case PIC.DFR: return new Vector3(1, 0, 1);
             case PIC.DFL: return new Vector3(0, 0, 1);
             case PIC.DBL: return new Vector3(0, 0, 0);
             case PIC.DBR: return new Vector3(1, 0, 0);
             /* Middles */
-            case PIC.UM: return new Vector3(0.5f, FillingHeight, 0.5f);
-            case PIC.FM: return new Vector3(0.5f, FillingHeight / 2, 1.0f);
+            case PIC.UM: return new Vector3(0.5f, FillingHeight+1, 0.5f);
+            case PIC.FM: return new Vector3(0.5f, FillingHeight / 2+1, 1.0f);
             case PIC.DM: return new Vector3(0.5f, 0, 0.5f);
-            case PIC.LM: return new Vector3(0, FillingHeight / 2, 0.5f);
-            case PIC.RM: return new Vector3(1, FillingHeight / 2, 0.5f);
-            case PIC.BM: return new Vector3(0.5f, FillingHeight / 2, 0);
+            case PIC.LM: return new Vector3(0, FillingHeight / 2+1, 0.5f);
+            case PIC.RM: return new Vector3(1, FillingHeight / 2+1, 0.5f);
+            case PIC.BM: return new Vector3(0.5f, FillingHeight / 2+1, 0);
             default:
                 throw new ArgumentOutOfRangeException("p");
         }

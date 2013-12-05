@@ -35,8 +35,9 @@ public class CreepSpreader : MonoBehaviour
 
     private void Spread()
     {
-        //spread.SpreadFrom(Random.Range(0, _widht), Random.Range(0, _height), Random.Range(1, 5), Random.Range(0.1f,0.3f));
-        spread.SpreadFrom(_widht / 2, _height / 2, 3, 0.1f);
+        spread.SpreadFrom(Random.Range(0, _widht), Random.Range(0, _height), Random.Range(1, 5), Random.Range(0.1f,0.3f));
+        //SmoothlyFill(Random.Range(0, _widht), Random.Range(0, _height), 0.1f);
+        //spread.SpreadFrom(_widht / 2, _height / 2, 3, 0.1f);
     }
 
     private IEnumerator SmoothlyFill(int x, int z, float targetFilling)
